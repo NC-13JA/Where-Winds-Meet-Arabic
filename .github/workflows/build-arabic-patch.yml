@@ -1,0 +1,53 @@
+name: Build Arabic localization test patch
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependency
+        run: python -m pip install --upgrade pip zstandard
+
+      - name: Reassemble original map
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s translate_words_map_en.part00
+          test -s translate_words_map_en.part01
+          test -s translate_words_map_en.part02
+          cat translate_words_map_en.part00 translate_words_map_en.part01 translate_words_map_en.part02 > translate_words_map_en
+          echo "Reassembled file size: $(stat -c%s translate_words_map_en) bytes"
+          test -s translate_words_map_en_diff
+
+      - name: Validate translation glossary
+        run: python tools/validate_translations.py
+
+      - name: Build separate test files
+        run: |
+          python tools/build_arabic_patch.py \
+            --base "$GITHUB_WORKSPACE/translate_words_map_en" \
+            --diff "$GITHUB_WORKSPACE/translate_words_map_en_diff" \
+            --out-dir "$GITHUB_WORKSPACE/build"
+
+      - name: Upload test patch files
+        uses: actions/upload-artifact@v4
+        with:
+          name: where-winds-me-arabic-test-patch
+          path: |
+            build/translate_words_map_en
+            build/translate_words_map_en_diff
+          if-no-files-found: error
+          retention-days: 14
