@@ -1,0 +1,10 @@
+# Original game files and generated binary patches
+translate_words_map_en
+translate_words_map_en_diff
+translate_words_map_en_TEST
+*.bak
+*.orig
+build/
+dist/
+__pycache__/
+*.py[cod]
