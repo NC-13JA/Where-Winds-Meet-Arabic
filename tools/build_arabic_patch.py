@@ -69,13 +69,12 @@ def main():
 
     out_dir = args.out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
-    if out_dir in (args.base.resolve().parent, args.diff.resolve().parent):
-        print("WARNING: output directory is the same as an input directory; output filenames remain separate.")
-
     work = out_dir / ".work"
-    work.mkdir(exist_ok=True)
     base_out = out_dir / "translate_words_map_en"
     diff_out = out_dir / "translate_words_map_en_diff"
+    if base_out.resolve() == args.base.resolve() or diff_out.resolve() == args.diff.resolve():
+        parser.error("output path would overwrite an original input file; choose a separate --out-dir")
+    work.mkdir(exist_ok=True)
 
     print(f"Loaded {len(glossary)} exact-string translations.")
     total = translate_one(args.base, base_out, glossary, work)
